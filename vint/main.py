@@ -11,7 +11,7 @@ def check_and_reformat(datetime_str):
     except ValueError:
         current_timestamp = datetime.datetime.now()
         datetime_str = current_timestamp.strftime('%Y %m %d %H:%M:%S')
-    print(datetime_str)
+
     return datetime_str
 
 def add_timestamp(image, timestamp):
@@ -44,8 +44,8 @@ def add_timestamp(image, timestamp):
     image = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGBA2BGR)  
 
     return image
-   
-def digital_camera_filter(image, timestamp=None):
+
+def eighties_digital_camera_filter(image, timestamp=None):
     '''
     image: color format bgr
     '''
@@ -89,8 +89,59 @@ def digital_camera_filter(image, timestamp=None):
     image = cv2.addWeighted(image, 1.5, image, -0.5, 0)
 
     return image
+ 
+def nineties_digital_camera_filter(image, timestamp=None):
+    '''
+    image: color format bgr
+    '''
+    
+    # color balance adjustment (warmer)
+    # alpha = weight of first image, beta = weight of second image, gamma = bias (added to final image)
+    image = cv2.addWeighted(image, 1.13, np.full(image.shape, np.array([0, 0, 65]), dtype=image.dtype), 0.07, -13)
 
-image_file = 'johnocap5.jpeg'
+    # contrast and brightness adjustment
+    image = cv2.convertScaleAbs(image, alpha=1.1, beta=0.8)
+    
+    # saturation
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    saturation_factor = 1.13  # Increase or decrease saturation (1.0 means no change)
+    hsv_image[:, :, 1] = np.clip(saturation_factor * hsv_image[:, :, 1], 0, 170).astype(np.uint8)
+    image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
+
+    # vignetting
+    rows, cols, _ = image.shape
+    vignette = cv2.getGaussianKernel(rows, rows*0.5) * cv2.getGaussianKernel(cols, cols*0.5).T
+    # creating mask and normalising by using np.linalg function
+    mask = 255 * vignette / np.linalg.norm(vignette) 
+    # applying the mask to each channel in the input image
+    min_mask = 0.33
+    for i in range(3):
+        if mask[0][0] < min_mask:
+            image[:,:,i] = image[:,:,i] * (min_mask/mask[0][0])*mask
+        else:
+            image[:,:,i] = image[:,:,i] * mask
+
+    
+    if not timestamp:
+        current_timestamp = datetime.datetime.now()
+        timestamp = current_timestamp.strftime('%Y %m %d %H:%M:%S')
+    else: 
+        timestamp = check_and_reformat(timestamp)
+
+    image = add_timestamp(image, timestamp)
+
+    # add grain/noise
+    intensity = 5
+    noise = np.random.randint(-intensity, intensity + 1, image.shape)
+    image = np.clip(image + noise, 0, 255).astype(np.uint8)
+
+    # # adjust sharpness
+    image = cv2.GaussianBlur(image, (0, 0), 1.3) # 0.1 or 2.7 or 1.3
+    image = cv2.addWeighted(image, 1.5, image, -0.5, 0)
+
+    return image
+
+image_file = 'callan.jpeg'
 # get the timestamp from the image metadata
 timestamp = Image.open(image_file)._getexif()[36867]
 image = cv2.imread(image_file)
@@ -98,7 +149,7 @@ cv2.imshow("Original Image", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-image = digital_camera_filter(image, timestamp)
+image = nineties_digital_camera_filter(image, timestamp)
 
 # display the result
 cv2.imwrite(image_file[:-5]+'digital'+'.jpeg', image)
