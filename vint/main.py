@@ -90,7 +90,7 @@ def digital_camera_filter(image, timestamp=None):
 
     return image
 
-image_file = 'jess2.jpeg'
+image_file = 'johnocap5.jpeg'
 # get the timestamp from the image metadata
 timestamp = Image.open(image_file)._getexif()[36867]
 image = cv2.imread(image_file)
