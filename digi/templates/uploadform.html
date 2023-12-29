@@ -72,6 +72,14 @@
 
         #result {
             margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #result > * {
+            width: 100% - 20px;
         }
     </style>
 </head>
@@ -131,8 +139,8 @@
                 }
 
                 const photoData = await response.blob();
-                console.log(photoData);
-                const processedPhoto = new File([photoData], 'processed_image');
+                const imageFormat = photoData.type.slice(6);
+                const processedPhoto = new File([photoData], 'processed_image.'+imageFormat);
 
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -140,6 +148,11 @@
                     console.log(e.target.result)
                     const resultDiv = document.getElementById('result');
                     resultDiv.innerHTML = `<img src="${e.target.result}" alt="Processed Image">`;
+                    const downloadLink = document.createElement('a');
+                    resultDiv.appendChild(downloadLink)
+                    downloadLink.href = e.target.result;
+                    downloadLink.innerHTML = `<button>Save Image</button>`;
+                    downloadLink.download = 'processed_image.'+imageFormat;
                 };
 
                 // Read the file as a data URL
