@@ -1,0 +1,157 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vint</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            border-style: solid;
+            border-color: #333;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #image {
+            display: none;
+        }
+
+        #image-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Be Timeless</h1>
+
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <label for="image">Choose an image:</label>
+        <input type="file" id="image" name="photo" accept="image/*" required onchange="previewImage(event)">
+        <br>
+
+        <div id="image-container">
+            <img id="preview" alt="Image Preview"
+            style="max-width: 100%; max-height: 200px; margin-top: 10px; display: none;">
+        </div>
+        
+        <br>
+
+        <button type="submit">Upload Image</button>
+    </form>
+
+    <div id="result">
+        <!-- Display the returned image here -->
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('preview');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/vintapi/v1/eighties', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Image upload failed');
+                }
+
+                const photoData = await response.blob();
+                console.log(photoData);
+                const processedPhoto = new File([photoData], 'processed_image');
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    // Set the data URL as the source of the img tag
+                    console.log(e.target.result)
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `<img src="${e.target.result}" alt="Processed Image">`;
+                };
+
+                // Read the file as a data URL
+                reader.readAsDataURL(processedPhoto);
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>
