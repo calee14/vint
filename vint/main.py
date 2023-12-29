@@ -1,5 +1,5 @@
 import cv2
-from PIL import ImageFont, ImageDraw, Image, ImageFilter
+from PIL import ImageFont, ImageDraw, Image, ImageFilter, ImageEnhance
 import numpy as np
 import datetime
 
@@ -13,6 +13,17 @@ def check_and_reformat(datetime_str):
         datetime_str = current_timestamp.strftime('%Y %m %d %H:%M:%S')
 
     return datetime_str
+
+def apply_neon_effect(image, intensity=2.0, radius=3):
+
+    blurred_image = image.filter(ImageFilter.GaussianBlur(radius))
+
+    enhancer = ImageEnhance.Contrast(blurred_image)
+    blurred_image = enhancer.enhance(intensity)
+
+    result_image = Image.alpha_composite(image.convert("RGBA"), blurred_image)
+    
+    return result_image
 
 def add_timestamp(image, timestamp):
     # Choose font and size
@@ -37,6 +48,7 @@ def add_timestamp(image, timestamp):
     text_position = (image.shape[1]-font_size*10, image.shape[0]*0.95)
     draw.text(text_position, timestamp, font=font, fill=font_color) 
     image = text_mask.filter(ImageFilter.BoxBlur(10))
+    text_mask = apply_neon_effect(text_mask)
 
     pil_im.paste(text_mask, (0,0), text_mask)
 
@@ -141,7 +153,7 @@ def nineties_digital_camera_filter(image, timestamp=None):
 
     return image
 
-image_file = 'callan.jpeg'
+image_file = 'mu.jpeg'
 # get the timestamp from the image metadata
 timestamp = Image.open(image_file)._getexif()[36867]
 image = cv2.imread(image_file)
@@ -156,5 +168,3 @@ cv2.imwrite(image_file[:-5]+'digital'+'.jpeg', image)
 cv2.imshow('Vintage Effect', image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-
