@@ -7,10 +7,12 @@ def check_and_reformat(datetime_str):
     try:
         # If parsing fails, reformat the datetime string
         original_datetime = datetime.datetime.strptime(datetime_str, '%Y:%m:%d %H:%M:%S')
-        datetime_str = original_datetime.strftime('%Y %m %d %H:%M:%S')
+        datetime_str = original_datetime.strftime("%m %d '%y %H:%M:%S")
     except ValueError:
         current_timestamp = datetime.datetime.now()
-        datetime_str = current_timestamp.strftime('%Y %m %d %H:%M:%S')
+        datetime_str = current_timestamp.strftime("%m %d '%y %H:%M:%S")
+        
+    
 
     return datetime_str
 
@@ -155,7 +157,7 @@ def nineties_digital_camera_filter(image, timestamp=None):
 
 image_file = 'mu.jpeg'
 # get the timestamp from the image metadata
-timestamp = Image.open(image_file)._getexif()[36867]
+timestamp = 'hi' #Image.open(image_file)._getexif()[36867]
 image = cv2.imread(image_file)
 cv2.imshow("Original Image", image)
 cv2.waitKey(0)
