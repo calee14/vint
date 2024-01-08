@@ -16,6 +16,25 @@ def check_and_reformat(datetime_str):
 
     return datetime_str
 
+def blurr_scalar(width, height):
+    if width >= 3000 and height >= 3000:
+        return 1.8
+    elif width >= 2000 and height >= 2000:
+        return 1.5
+    elif width >= 1000 and height >= 1000:
+        return 1.2
+    else:
+        return 1.1
+     
+def rand_noise_intensity(width, height):
+    if width >= 3000 and height >= 3000:
+        return 17
+    elif width >= 2000 and height >= 2000:
+        return 10
+    elif width >= 1000 and height >= 1000:
+        return 7
+    else:
+        return 1.1
 def apply_neon_effect(image, intensity=2.0, radius=3):
 
     blurred_image = image.filter(ImageFilter.GaussianBlur(radius))
@@ -94,12 +113,12 @@ def eighties_digital_camera_filter(image, timestamp=None):
     image = add_timestamp(image, timestamp)
 
     # add grain/noise
-    intensity = 5
+    intensity = rand_noise_intensity(image.shape[0], image.shape[1])
     noise = np.random.randint(-intensity, intensity + 1, image.shape)
     image = np.clip(image + noise, 0, 255).astype(np.uint8)
 
     # # adjust sharpness
-    image = cv2.GaussianBlur(image, (0, 0), 1.3) # 0.1 or 2.7 or 1.3
+    image = cv2.GaussianBlur(image, (0, 0), blurr_scalar(image.shape[0], image.shape[1])) # 0.1 or 2.7 or 1.3
     image = cv2.addWeighted(image, 1.5, image, -0.5, 0)
 
     return image
@@ -111,14 +130,14 @@ def nineties_digital_camera_filter(image, timestamp=None):
     
     # color balance adjustment (warmer)
     # alpha = weight of first image, beta = weight of second image, gamma = bias (added to final image)
-    image = cv2.addWeighted(image, 1.13, np.full(image.shape, np.array([0, 0, 65]), dtype=image.dtype), 0.07, -13)
+    image = cv2.addWeighted(image, 1.13, np.full(image.shape, np.array([0, 10, 10]), dtype=image.dtype), 0.07, -13)
 
     # contrast and brightness adjustment
-    image = cv2.convertScaleAbs(image, alpha=1.1, beta=0.8)
+    image = cv2.convertScaleAbs(image, alpha=1.07, beta=0.8)
     
     # saturation
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    saturation_factor = 0.91  # Increase or decrease saturation (1.0 means no change)
+    saturation_factor = 0.98  # Increase or decrease saturation (1.0 means no change)
     hsv_image[:, :, 1] = np.clip(saturation_factor * hsv_image[:, :, 1], 0, 170).astype(np.uint8)
     image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
@@ -145,12 +164,12 @@ def nineties_digital_camera_filter(image, timestamp=None):
     image = add_timestamp(image, timestamp)
 
     # add grain/noise
-    intensity = 5
+    intensity = rand_noise_intensity(image.shape[0], image.shape[1])
     noise = np.random.randint(-intensity, intensity + 1, image.shape)
     image = np.clip(image + noise, 0, 255).astype(np.uint8)
 
     # # adjust sharpness
-    image = cv2.GaussianBlur(image, (0, 0), 1.3) # 0.1 or 2.7 or 1.3
+    image = cv2.GaussianBlur(image, (0, 0), blurr_scalar(image.shape[0], image.shape[1])) # 0.1 or 2.7 or 1.3
     image = cv2.addWeighted(image, 1.5, image, -0.5, 0)
 
     return image
@@ -162,13 +181,13 @@ def aesthetic_digital_camera_filter(image, timestamp=None):
     # image = cv2.addWeighted(image, 1.13, np.full(image.shape, np.array([0, 0, 65]), dtype=image.dtype), 0.07, -13)
 
     # contrast and brightness adjustment
-    # image = cv2.convertScaleAbs(image, alpha=1.1, beta=0.8)
-
+    image = cv2.convertScaleAbs(image, alpha=0.91, beta=0.2)
+    
     # saturation
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    saturation_factor = 1.13  # Increase or decrease saturation (1.0 means no change)
-    hsv_image[:, :, 1] = np.clip(saturation_factor * hsv_image[:, :, 1], 0, 170).astype(np.uint8)
-    image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
+    # hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # saturation_factor = 0.91  # Increase or decrease saturation (1.0 means no change)
+    # hsv_image[:, :, 1] = np.clip(saturation_factor * hsv_image[:, :, 1], 0, 180).astype(np.uint8)
+    # image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
     # vignetting
     rows, cols, _ = image.shape
@@ -193,17 +212,18 @@ def aesthetic_digital_camera_filter(image, timestamp=None):
     image = add_timestamp(image, timestamp)
 
     # add grain/noise
-    intensity = 5
+    intensity = rand_noise_intensity(image.shape[0], image.shape[1])
     noise = np.random.randint(-intensity, intensity + 1, image.shape)
     image = np.clip(image + noise, 0, 255).astype(np.uint8)
 
     # # adjust sharpness
-    image = cv2.GaussianBlur(image, (0, 0), 2.0) # 0.1 or 2.7 or 1.3
-    image = cv2.addWeighted(image, 1.5, image, -0.5, 0)
+    image = cv2.GaussianBlur(image, (0, 0), blurr_scalar(image.shape[0], image.shape[1])) # 0.1 or 2.7 or 1.3
+    image = cv2.addWeighted(image, 1.2, image, 0.1, 0)
+
 
     return image
 
-image_file = 'caplonghair2.jpeg'
+image_file = 'caye1.jpeg'
 # get the timestamp from the image metadata
 timestamp = 'hi' #Image.open(image_file)._getexif()[36867]
 image = cv2.imread(image_file)
