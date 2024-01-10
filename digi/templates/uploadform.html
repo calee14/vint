@@ -93,13 +93,13 @@
         <br>
 
         <div id="image-container">
-            <img id="preview" alt="Image Preview"
+            <img id="image-view" alt="Image view"
             style="max-width: 100%; max-height: 200px; margin-top: 10px; display: none;">
         </div>
         
         <br>
 
-        <button type="submit">Upload Image</button>
+        <button type="submit" id="form-submit">Upload Image</button>
     </form>
 
     <div id="result">
@@ -107,9 +107,11 @@
     </div>
 
     <script>
+        let INPUT_FILE_NAME;
+
         function previewImage(event) {
             const input = event.target;
-            const preview = document.getElementById('preview');
+            const preview = document.getElementById('image-view');
 
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -120,7 +122,23 @@
                 };
 
                 reader.readAsDataURL(input.files[0]);
+                
+                // parse input file name
+                var fileName = input.files[0]['name'];
+                for(var i=fileName.length-1; i>=0; i--) {
+                    if(fileName[i] == ".") {
+                        fileName = fileName.slice(0, -1);
+                        break;
+                    }
+                    fileName = fileName.slice(0, -1);                    
+                }
+                INPUT_FILE_NAME = fileName;
+
+                // show submit button
+                const submitButton = document.getElementById('form-submit');
+                submitButton.style.display = "block";
             }
+
         }
 
         document.getElementById('uploadForm').addEventListener('submit', async function (event) {
@@ -146,13 +164,19 @@
                 reader.onload = function (e) {
                     // Set the data URL as the source of the img tag
                     console.log(e.target.result)
-                    const resultDiv = document.getElementById('result');
+                    const resultDiv = document.getElementById('image-frame');
                     resultDiv.innerHTML = `<img src="${e.target.result}" alt="Processed Image">`;
+                    
+                    // hide submit button 
+                    const submitButton = document.getElementById('form-submit');
+                    submitButton.style.display = "none";
+
+                    // add download link
                     const downloadLink = document.createElement('a');
                     resultDiv.appendChild(downloadLink)
                     downloadLink.href = e.target.result;
                     downloadLink.innerHTML = `<button>Save Image</button>`;
-                    downloadLink.download = 'processed_image.'+imageFormat;
+                    downloadLink.download = INPUT_FILE_NAME+"_digital."+imageFormat;
                 };
 
                 // Read the file as a data URL
